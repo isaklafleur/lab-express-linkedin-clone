@@ -12,7 +12,7 @@ mongoose.Promise = global.Promise;
 mongoose.connect("mongodb://localhost:27017/express-linkedin-clone", {
   keepAlive: true,
   reconnectTries: Number.MAX_VALUE,
-  useMongoClient: true,
+  useMongoClient: true
 });
 
 const authRoutes = require("./routes/auth");
@@ -35,9 +35,9 @@ app.use(
     cookie: { maxAge: 60000 },
     store: new MongoStore({
       mongooseConnection: mongoose.connection,
-      ttl: 24 * 60 * 60, // 1 day
-    }),
-  }),
+      ttl: 24 * 60 * 60 // 1 day
+    })
+  })
 );
 
 app.use(logger("dev"));
