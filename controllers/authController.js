@@ -1,36 +1,113 @@
-// ====================
-// MIDDLEWARE
-// ====================
-const User = require('../models/user');
+const bcrypt = require("bcrypt");
+
+const bcryptSalt = 10;
+const User = require("../models/user");
+const Post = require("../models/post");
 
 const authController = {};
 
-authController.checkProfileOwnership = (req, res, next) => {
-  // is logged in?
-  if (req.session.currentUser) {
-    User.findById(req.params.id, (err, foundProfile) => {
-      if (err) {
-        console.log('Error: ', err);
-        // console.log('foundProfile', foundProfile);
-        // console.log('req.user._id: ', req.user._id);
-        console.log('req.session.currentUser: ', req.session.currentUser);
-      } else if (foundProfile._id.equals(req.session.currentUser._id)) {
-        next();
-      } else {
-        res.redirect('/profiles');
-      }
-    });
-  } else {
-    res.redirect('/login');
-  }
+authController.list = (req, res) => {
+  Post.find({}, (err, posts) => {
+    const data = {
+      posts: posts,
+    };
+    res.render("home", data);
+  });
 };
 
-authController.isLoggedIn = ((req, res, next) => {
-  if (req.session.currentUser) {
-    next();
-  } else {
-    res.redirect('/login');
+authController.signupGET = (req, res) => {
+  res.render("authentication/signup");
+};
+
+authController.signupPOST = (req, res, next) => {
+  const name = req.body.name;
+  const email = req.body.email;
+  const password = req.body.password;
+  const summary = req.body.summary;
+  const imageUrl = req.body.imageUrl;
+  const company = req.body.company;
+  const jobTitle = req.body.jobTitle;
+  const salt = bcrypt.genSaltSync(bcryptSalt);
+  const hashPass = bcrypt.hashSync(password, salt);
+
+  User.findOne({ email }, "email", (err, user) => {
+    if (user !== null) {
+      res.render("authentication/signup", {
+        errorMessage: "This email is already registered. Want to",
+      });
+      return;
+    }
+    const newUser = new User({
+      name,
+      email,
+      password: hashPass,
+      summary,
+      imageUrl,
+      company,
+      jobTitle,
+    });
+
+    if (email === "" || password === "") {
+      res.render("authentication/signup", {
+        errorMessage: "Please indicate an email and a password to sign up",
+      });
+      return;
+    }
+
+    newUser.save(err => {
+      if (err) {
+        res.render("authentication/signup", { errors: newUser.errors });
+      }
+      req.session.currentUser = newUser;
+      res.redirect(`profiles/${newUser._id}`);
+    });
+  });
+};
+
+authController.loginGET = (req, res, next) => {
+  res.render("authentication/login");
+};
+
+authController.loginPOST = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (email === "" || password === "") {
+    res.render("authentication/login", {
+      errorMessage: "Indicate an email and a password to login",
+    });
+    return;
   }
-});
+  User.findOne({ email }, (err, user) => {
+    if (err || !user) {
+      res.render("authentication/login", {
+        errorMessage: "The username doesn't exist",
+      });
+      return;
+    }
+    if (bcrypt.compareSync(password, user.password)) {
+      // Save the login in the session!
+
+      req.session.currentUser = user;
+      // console.log("req.session", req.session);
+      const userId = user._id;
+      res.redirect(`profiles/${userId}`);
+    } else {
+      res.render("authentication/login", {
+        errorMessage: "Incorrect password",
+      });
+    }
+  });
+};
+
+authController.logout = (req, res, next) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.log("Error: ", err);
+    }
+    // cannot access session here
+    res.redirect("login");
+  });
+};
 
 module.exports = authController;

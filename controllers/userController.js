@@ -1,4 +1,8 @@
 const User = require("../models/user");
+const Post = require("../models/post");
+
+const bcrypt = require("bcrypt");
+const bcryptSalt = 10;
 
 const userController = {};
 
@@ -8,7 +12,10 @@ userController.list = (req, res) => {
     if (err) {
       console.log("Error:", err);
     } else {
-      res.render("profiles/index", { users });
+      const data = {
+        users: users,
+      };
+      res.render("profiles/index", data);
     }
   });
 };
@@ -19,7 +26,10 @@ userController.show = (req, res) => {
     if (err) {
       console.log("Error: ", err);
     } else {
-      res.render("profiles/show", { user });
+      const data = {
+        user: user,
+      };
+      res.render("profiles/show", data);
     }
   });
 };
@@ -38,7 +48,6 @@ userController.save = (req, res) => {
       console.log(err);
       res.render("profiles/create");
     } else {
-      console.log("Successfully created a profile.");
       res.redirect(`/profiles/show/${user._id}`);
     }
   });
@@ -50,20 +59,25 @@ userController.edit = (req, res) => {
     if (err) {
       console.log("Error: ", err);
     } else {
-      res.render("profiles/edit", { user });
+      const data = {
+        user: user,
+      };
+      res.render("profiles/edit", data);
     }
   });
 };
 
 // UPDATE user function for updating currently edited user
 userController.update = (req, res) => {
+  const salt = bcrypt.genSaltSync(bcryptSalt);
+  const hashPass = bcrypt.hashSync(req.body.password, salt);
   User.findByIdAndUpdate(
     req.params.id,
     {
       $set: {
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password,
+        password: hashPass,
         summary: req.body.summary,
         imageUrl: req.body.imageUrl,
         company: req.body.company,
@@ -81,8 +95,13 @@ userController.update = (req, res) => {
   );
 };
 
-// DELETE user by id function for remove single user data
+// DELETE user by id function for remove single user data and delete all the users posts.
 userController.delete = (req, res) => {
+  Post.remove({ _creator: req.params.id }, err => {
+    if (err) {
+      console.log("Error", err);
+    }
+  });
   User.remove({ _id: req.params.id }, err => {
     if (err) {
       console.log("Error: ", err);

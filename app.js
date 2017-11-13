@@ -16,8 +16,8 @@ mongoose.connect("mongodb://localhost:27017/express-linkedin-clone", {
 });
 
 const authRoutes = require("./routes/auth");
-const profileRoutes = require("./routes/profile");
-const postRoutes = require("./routes/post.js");
+const userRoutes = require("./routes/user");
+const postRoutes = require("./routes/post");
 
 const app = express();
 
@@ -47,7 +47,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", authRoutes);
-app.use("/profiles/", profileRoutes);
+app.use("/profiles", userRoutes);
 app.use("/users", postRoutes);
 
 // app.use('/profile', siteRoutes);
