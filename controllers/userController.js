@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require("../models/user");
 
 const userController = {};
 
@@ -6,9 +6,9 @@ const userController = {};
 userController.list = (req, res) => {
   User.find({}).exec({ new: true }, (err, users) => {
     if (err) {
-      console.log('Error:', err);
+      console.log("Error:", err);
     } else {
-      res.render('profiles/index', { users });
+      res.render("profiles/index", { users });
     }
   });
 };
@@ -17,28 +17,28 @@ userController.list = (req, res) => {
 userController.show = (req, res) => {
   User.findOne({ _id: req.params.id }).exec((err, user) => {
     if (err) {
-      console.log('Error: ', err);
+      console.log("Error: ", err);
     } else {
-      res.render('profiles/show', { user });
+      res.render("profiles/show", { user });
     }
   });
 };
 
 // CREATE profile function, it just redirects to create the page
 userController.create = (req, res) => {
-  res.render('profiles/create');
+  res.render("profiles/create");
 };
 
 // SAVE new profile function
 userController.save = (req, res) => {
   const user = new User(req.body);
 
-  User.save((err) => {
+  User.save(err => {
     if (err) {
       console.log(err);
-      res.render('profiles/create');
+      res.render("profiles/create");
     } else {
-      console.log('Successfully created a profile.');
+      console.log("Successfully created a profile.");
       res.redirect(`/profiles/show/${user._id}`);
     }
   });
@@ -48,41 +48,46 @@ userController.save = (req, res) => {
 userController.edit = (req, res) => {
   User.findOne({ _id: req.params.id }).exec((err, user) => {
     if (err) {
-      console.log('Error: ', err);
+      console.log("Error: ", err);
     } else {
-      res.render('../views/profiles/edit', { user });
+      res.render("profiles/edit", { user });
     }
   });
 };
 
 // UPDATE user function for updating currently edited user
 userController.update = (req, res) => {
-  User.findByIdAndUpdate(req.params.id, {
-    $set: {
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      summary: req.body.summary,
-      imageUrl: req.body.imageUrl,
-      company: req.body.company,
-      jobTitle: req.body.jobTitle,
-    } }, { new: true }, (err, user) => {
+  User.findByIdAndUpdate(
+    req.params.id,
+    {
+      $set: {
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        summary: req.body.summary,
+        imageUrl: req.body.imageUrl,
+        company: req.body.company,
+        jobTitle: req.body.jobTitle,
+      },
+    },
+    { new: true },
+    (err, user) => {
       if (err) {
         console.log(err);
-        res.render('../views/profiles/edit', { user: req.body });
+        res.render("profiles/edit", { user: req.body });
       }
       res.redirect(`/profiles/${user._id}`);
-    });
+    },
+  );
 };
 
 // DELETE user by id function for remove single user data
 userController.delete = (req, res) => {
-  User.remove({ _id: req.params.id }, (err) => {
+  User.remove({ _id: req.params.id }, err => {
     if (err) {
-      console.log('Error: ', err);
+      console.log("Error: ", err);
     } else {
-      console.log('User deleted!');
-      res.redirect('/profiles');
+      res.redirect("/profiles");
     }
   });
 };
