@@ -5,7 +5,14 @@ const postController = {};
 
 postController.new = (req, res, next) => {
   User.findOne({ _id: req.params.id }, (err, user) => {
-    res.render("posts/new", { user });
+    if (err) {
+      next(err);
+    } else {
+      const data = {
+        user: user
+      };
+      res.render("posts/new", data);
+    }
   });
 };
 
@@ -17,11 +24,11 @@ postController.save = (req, res, next) => {
   const newPost = new Post({
     _creator,
     content,
-    nameOfUser,
+    nameOfUser
   });
   newPost.save(err => {
     if (err) {
-      console.log("Error: ", err);
+      next(err);
     }
     res.redirect("/");
   });

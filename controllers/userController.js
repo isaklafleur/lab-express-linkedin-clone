@@ -13,7 +13,7 @@ userController.list = (req, res) => {
       console.log("Error:", err);
     } else {
       const data = {
-        users: users,
+        users: users
       };
       res.render("profiles/index", data);
     }
@@ -27,7 +27,7 @@ userController.show = (req, res) => {
       console.log("Error: ", err);
     } else {
       const data = {
-        user: user,
+        user: user
       };
       res.render("profiles/show", data);
     }
@@ -60,7 +60,7 @@ userController.edit = (req, res) => {
       console.log("Error: ", err);
     } else {
       const data = {
-        user: user,
+        user: user
       };
       res.render("profiles/edit", data);
     }
@@ -81,8 +81,8 @@ userController.update = (req, res) => {
         summary: req.body.summary,
         imageUrl: req.body.imageUrl,
         company: req.body.company,
-        jobTitle: req.body.jobTitle,
-      },
+        jobTitle: req.body.jobTitle
+      }
     },
     { new: true },
     (err, user) => {
@@ -91,12 +91,12 @@ userController.update = (req, res) => {
         res.render("profiles/edit", { user: req.body });
       }
       res.redirect(`/profiles/${user._id}`);
-    },
+    }
   );
 };
 
 // DELETE user by id function for remove single user data and delete all the users posts.
-userController.delete = (req, res) => {
+userController.delete = (req, res, next) => {
   Post.remove({ _creator: req.params.id }, err => {
     if (err) {
       console.log("Error", err);
@@ -104,7 +104,7 @@ userController.delete = (req, res) => {
   });
   User.remove({ _id: req.params.id }, err => {
     if (err) {
-      console.log("Error: ", err);
+      next(err);
     } else {
       res.redirect("/profiles");
     }

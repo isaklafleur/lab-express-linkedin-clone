@@ -15,11 +15,15 @@ mongoose.connect("mongodb://localhost:27017/express-linkedin-clone", {
   useMongoClient: true
 });
 
+// Require the routes
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const postRoutes = require("./routes/post");
 
 const app = express();
+
+// public folder
+app.use(express.static(path.join(__dirname, "public")));
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
@@ -44,8 +48,8 @@ app.use(logger("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
 
+// Use the Routes
 app.use("/", authRoutes);
 app.use("/profiles", userRoutes);
 app.use("/users", postRoutes);

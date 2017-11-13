@@ -6,12 +6,16 @@ const Post = require("../models/post");
 
 const authController = {};
 
-authController.list = (req, res) => {
+authController.list = (req, res, next) => {
   Post.find({}, (err, posts) => {
-    const data = {
-      posts: posts,
-    };
-    res.render("home", data);
+    if (err) {
+      next(err);
+    } else {
+      const data = {
+        posts: posts
+      };
+      res.render("home", data);
+    }
   });
 };
 
@@ -31,36 +35,40 @@ authController.signupPOST = (req, res, next) => {
   const hashPass = bcrypt.hashSync(password, salt);
 
   User.findOne({ email }, "email", (err, user) => {
-    if (user !== null) {
-      res.render("authentication/signup", {
-        errorMessage: "This email is already registered. Want to",
-      });
-      return;
-    }
-    const newUser = new User({
-      name,
-      email,
-      password: hashPass,
-      summary,
-      imageUrl,
-      company,
-      jobTitle,
-    });
-
-    if (email === "" || password === "") {
-      res.render("authentication/signup", {
-        errorMessage: "Please indicate an email and a password to sign up",
-      });
-      return;
-    }
-
-    newUser.save(err => {
-      if (err) {
-        res.render("authentication/signup", { errors: newUser.errors });
+    if (err) {
+      next(err);
+    } else {
+      if (user !== null) {
+        res.render("authentication/signup", {
+          errorMessage: "This email is already registered. Want to"
+        });
+        return;
       }
-      req.session.currentUser = newUser;
-      res.redirect(`profiles/${newUser._id}`);
-    });
+      const newUser = new User({
+        name,
+        email,
+        password: hashPass,
+        summary,
+        imageUrl,
+        company,
+        jobTitle
+      });
+
+      if (email === "" || password === "") {
+        res.render("authentication/signup", {
+          errorMessage: "Please indicate an email and a password to sign up"
+        });
+        return;
+      }
+
+      newUser.save(err => {
+        if (err) {
+          res.render("authentication/signup", { errors: newUser.errors });
+        }
+        req.session.currentUser = newUser;
+        res.redirect(`profiles/${newUser._id}`);
+      });
+    }
   });
 };
 
@@ -74,14 +82,14 @@ authController.loginPOST = (req, res, next) => {
 
   if (email === "" || password === "") {
     res.render("authentication/login", {
-      errorMessage: "Indicate an email and a password to login",
+      errorMessage: "Indicate an email and a password to login"
     });
     return;
   }
   User.findOne({ email }, (err, user) => {
     if (err || !user) {
       res.render("authentication/login", {
-        errorMessage: "The username doesn't exist",
+        errorMessage: "The username doesn't exist"
       });
       return;
     }
@@ -94,7 +102,7 @@ authController.loginPOST = (req, res, next) => {
       res.redirect(`profiles/${userId}`);
     } else {
       res.render("authentication/login", {
-        errorMessage: "Incorrect password",
+        errorMessage: "Incorrect password"
       });
     }
   });
@@ -103,7 +111,7 @@ authController.loginPOST = (req, res, next) => {
 authController.logout = (req, res, next) => {
   req.session.destroy(err => {
     if (err) {
-      console.log("Error: ", err);
+      next(err);
     }
     // cannot access session here
     res.redirect("login");
